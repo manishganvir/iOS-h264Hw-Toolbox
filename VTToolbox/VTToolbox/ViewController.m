@@ -18,6 +18,7 @@
     NSString *h264File;
     int fd;
     NSFileHandle *fileHandle;
+    AVCaptureConnection* connection;
 }
 @property (weak, nonatomic) IBOutlet UIButton *StartStopButton;
 
@@ -98,11 +99,24 @@
     // picture resolution
     [captureSession setSessionPreset:[NSString stringWithString:AVCaptureSessionPreset640x480]];
     
+    connection = [outputDevice connectionWithMediaType:AVMediaTypeVideo];
+    [self setRelativeVideoOrientation];
+    
+    NSNotificationCenter* notify = [NSNotificationCenter defaultCenter];
+    
+    [notify addObserver:self
+               selector:@selector(statusBarOrientationDidChange:)
+                   name:@"StatusBarOrientationDidChange"
+                 object:nil];
+    
+    
     [captureSession commitConfiguration];
     
     // make preview layer and add so that camera's view is displayed on screen
     
     previewLayer = [AVCaptureVideoPreviewLayer    layerWithSession:captureSession];
+    [previewLayer setVideoGravity:AVLayerVideoGravityResizeAspect];
+
     previewLayer.frame = self.view.bounds;
     [self.view.layer addSublayer:previewLayer];
     
@@ -114,21 +128,47 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     
-    h264File = [documentsDirectory stringByAppendingPathComponent:@"test3.h264"];
+    h264File = [documentsDirectory stringByAppendingPathComponent:@"test.h264"];
+    [fileManager removeItemAtPath:h264File error:nil];
     [fileManager createFileAtPath:h264File contents:nil attributes:nil];
     
     // Open the file using POSIX as this is anyway a test application
     //fd = open([h264File UTF8String], O_RDWR);
     fileHandle = [NSFileHandle fileHandleForWritingAtPath:h264File];
     
-    
-    [h264Encoder initEncode:640 height:480];
+    [h264Encoder initEncode:480 height:640];
     h264Encoder.delegate = self;
     
     
     
 }
+- (void)statusBarOrientationDidChange:(NSNotification*)notification {
+    [self setRelativeVideoOrientation];
+}
 
+- (void)setRelativeVideoOrientation {
+      switch ([[UIDevice currentDevice] orientation]) {
+        case UIInterfaceOrientationPortrait:
+#if defined(__IPHONE_8_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0
+        case UIInterfaceOrientationUnknown:
+#endif
+            connection.videoOrientation = AVCaptureVideoOrientationPortrait;
+    
+            break;
+        case UIInterfaceOrientationPortraitUpsideDown:
+            connection.videoOrientation =
+            AVCaptureVideoOrientationPortraitUpsideDown;
+            break;
+        case UIInterfaceOrientationLandscapeLeft:
+            connection.videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+            break;
+        case UIInterfaceOrientationLandscapeRight:
+            connection.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+            break;
+        default:
+            break;
+    }
+}
 - (void) stopCamera
 {
     [captureSession stopRunning];
@@ -165,12 +205,14 @@
     NSData *ByteHeader = [NSData dataWithBytes:bytes length:length];
     [fileHandle writeData:ByteHeader];
     [fileHandle writeData:sps];
+    [fileHandle writeData:ByteHeader];
     [fileHandle writeData:pps];
 
 }
-- (void)gotEncodedData:(NSData*)data
+- (void)gotEncodedData:(NSData*)data isKeyFrame:(BOOL)isKeyFrame
 {
     NSLog(@"gotEncodedData %d", (int)[data length]);
+    static int framecount = 1;
 
    // [data writeToFile:h264File atomically:YES];
     //write(fd, [data bytes], [data length]);
@@ -179,7 +221,27 @@
         const char bytes[] = "\x00\x00\x00\x01";
         size_t length = (sizeof bytes) - 1; //string literals have implicit trailing '\0'
         NSData *ByteHeader = [NSData dataWithBytes:bytes length:length];
+        
+        
+        /*NSData *UnitHeader;
+        if(isKeyFrame)
+        {
+            char header[2];
+            header[0] = '\x65';
+            UnitHeader = [NSData dataWithBytes:header length:1];
+            framecount = 1;
+        }
+        else
+        {
+            char header[4];
+            header[0] = '\x41';
+            //header[1] = '\x9A';
+            //header[2] = framecount;
+            UnitHeader = [NSData dataWithBytes:header length:1];
+            framecount++;
+        }*/
         [fileHandle writeData:ByteHeader];
+        //[fileHandle writeData:UnitHeader];
         [fileHandle writeData:data];
     }
 }

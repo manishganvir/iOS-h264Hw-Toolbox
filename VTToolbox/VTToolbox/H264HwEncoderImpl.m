@@ -54,24 +54,36 @@
 void didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
 CMSampleBufferRef sampleBuffer )
 {
-    NSLog(@"didCompressH264 called with status %d", (int)status);
-   H264HwEncoderImpl* encoder = (__bridge H264HwEncoderImpl*)outputCallbackRefCon;
+    NSLog(@"didCompressH264 called with status %d infoFlags %d", (int)status, (int)infoFlags);
+    if (status != 0) return;
     
-    
-     
-     
-    if (encoder->sps == NULL || encoder->pps == NULL)
+    if (!CMSampleBufferDataIsReady(sampleBuffer))
     {
+        NSLog(@"didCompressH264 data is not ready ");
+        return;
+    }
+   H264HwEncoderImpl* encoder = (__bridge H264HwEncoderImpl*)outputCallbackRefCon;
+   
+   // Check if we have got a key frame first
+    bool keyframe = !CFDictionaryContainsKey( (CFArrayGetValueAtIndex(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, true), 0)), kCMSampleAttachmentKey_NotSync);
+    
+   if (keyframe)
+   {
         CMFormatDescriptionRef format = CMSampleBufferGetFormatDescription(sampleBuffer);
+       // CFDictionaryRef extensionDict = CMFormatDescriptionGetExtensions(format);
+       // Get the extensions
+       // From the extensions get the dictionary with key "SampleDescriptionExtensionAtoms"
+       // From the dict, get the value for the key "avcC"
+       
         size_t sparameterSetSize, sparameterSetCount;
         const uint8_t *sparameterSet;
-        OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(format, 0, &sparameterSet, &sparameterSetSize, &sparameterSetCount, NULL );
+        OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(format, 0, &sparameterSet, &sparameterSetSize, &sparameterSetCount, 0 );
         if (statusCode == noErr)
         {
             // Found sps and now check for pps
             size_t pparameterSetSize, pparameterSetCount;
             const uint8_t *pparameterSet;
-            OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(format, 1, &pparameterSet, &pparameterSetSize, &pparameterSetCount, NULL );
+            OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(format, 1, &pparameterSet, &pparameterSetSize, &pparameterSetCount, 0 );
             if (statusCode == noErr)
             {
                 // Found pps
@@ -90,8 +102,25 @@ CMSampleBufferRef sampleBuffer )
     char *dataPointer;
     OSStatus statusCodeRet = CMBlockBufferGetDataPointer(dataBuffer, 0, &length, &totalLength, &dataPointer);
     if (statusCodeRet == noErr) {
-        NSData* data = [[NSData alloc] initWithBytes:dataPointer length:totalLength];
-        [encoder->_delegate gotEncodedData:data];
+        
+        size_t bufferOffset = 0;
+        static const int AVCCHeaderLength = 4;
+        while (bufferOffset < totalLength - AVCCHeaderLength) {
+            
+            // Read the NAL unit length
+            uint32_t NALUnitLength = 0;
+            memcpy(&NALUnitLength, dataPointer + bufferOffset, AVCCHeaderLength);
+            
+            // Convert the length value from Big-endian to Little-endian
+            NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
+            
+            NSData* data = [[NSData alloc] initWithBytes:(dataPointer + bufferOffset + AVCCHeaderLength) length:NALUnitLength];
+            [encoder->_delegate gotEncodedData:data isKeyFrame:keyframe];
+            
+            // Move to the next NAL unit in the block buffer
+            bufferOffset += AVCCHeaderLength + NALUnitLength;
+        }
+        
     }
     
 }
@@ -124,7 +153,10 @@ CMSampleBufferRef sampleBuffer )
         }
         
         // Set the properties
-        //VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue);
+        VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue);
+        VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_AllowFrameReordering, kCFBooleanFalse);
+        VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_MaxKeyFrameInterval, 240);
+
         VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_ProfileLevel, kVTProfileLevel_H264_High_AutoLevel);
 
        
@@ -255,7 +287,7 @@ CMSampleBufferRef sampleBuffer )
         
         // Set the properties
         VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue);
-        VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_ProfileLevel, kVTProfileLevel_H264_High_AutoLevel);
+        VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_ProfileLevel, kVTProfileLevel_H264_Main_AutoLevel);
         
         
         // Tell the encoder to start encoding
@@ -298,6 +330,10 @@ CMSampleBufferRef sampleBuffer )
     
     
 }
+- (void) changeResolution:(int)width  height:(int)height
+{
+}
+
 
 - (void) End
 {
