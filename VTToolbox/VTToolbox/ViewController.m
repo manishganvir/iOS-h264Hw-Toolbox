@@ -32,10 +32,6 @@
     h264Encoder = [H264HwEncoderImpl alloc];
     [h264Encoder initWithConfiguration];
     startCalled = true;
-    
-    
-    
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -71,9 +67,13 @@
     AVCaptureDevice *cameraDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     
     AVCaptureDeviceInput *inputDevice = [AVCaptureDeviceInput deviceInputWithDevice:cameraDevice error:&deviceError];
-    
+	
+	if (inputDevice == nil) {
+		NSLog(@"Can't search inputDevice");
+		return;
+	}
+	
     // make output device
-    
     AVCaptureVideoDataOutput *outputDevice = [[AVCaptureVideoDataOutput alloc] init];
     
     NSString* key = (NSString*)kCVPixelBufferPixelFormatTypeKey;

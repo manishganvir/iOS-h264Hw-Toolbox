@@ -1,7 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6751" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vXZ-lx-hvc">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6736"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -13,35 +18,35 @@
                         <viewControllerLayoutGuide type="bottom" id="2fi-mo-0CV"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2vd-rq-UAz">
-                                <rect key="frame" x="278" y="562" width="33" height="30"/>
-                                <state key="normal" title="Start">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="OnStartStop:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="506-hI-pRV"/>
-                                </connections>
-                            </button>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" lineBreakMode="tailTruncation" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sq9-mK-AP2">
-                                <rect key="frame" x="169" y="234" width="263" height="107"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="250" id="s4x-rm-sgA"/>
-                                </constraints>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sq9-mK-AP2">
+                                <rect key="frame" x="0.0" y="272.5" width="375" height="122"/>
                                 <string key="text">Press start to open the camera, start h264 encoding and store the elementary stream in a flle. This file can be retrieved using itunes file sharing
  </string>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2vd-rq-UAz">
+                                <rect key="frame" x="170.5" y="469" width="34" height="30"/>
+                                <state key="normal" title="Start">
+                                    <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="OnStartStop:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="506-hI-pRV"/>
+                                </connections>
+                            </button>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstAttribute="centerX" secondItem="sq9-mK-AP2" secondAttribute="centerX" constant="12" id="Bmh-8I-MWx"/>
-                            <constraint firstAttribute="centerX" secondItem="2vd-rq-UAz" secondAttribute="centerX" id="PVw-Mo-X0y"/>
-                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="2vd-rq-UAz" secondAttribute="bottom" constant="8" id="SNB-ft-xok"/>
+                            <constraint firstItem="sq9-mK-AP2" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="WrR-8I-hxa"/>
+                            <constraint firstItem="2vd-rq-UAz" firstAttribute="top" secondItem="sq9-mK-AP2" secondAttribute="bottom" constant="74.5" id="ahh-xd-tZJ"/>
+                            <constraint firstAttribute="trailing" secondItem="sq9-mK-AP2" secondAttribute="trailing" id="im5-Wy-Z9d"/>
+                            <constraint firstItem="sq9-mK-AP2" firstAttribute="centerY" secondItem="kh9-bI-dsS" secondAttribute="centerY" id="mfi-yd-6Fq"/>
+                            <constraint firstItem="2vd-rq-UAz" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="noU-KQ-kR7"/>
+                            <constraint firstItem="sq9-mK-AP2" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="vie-2G-yKa"/>
                         </constraints>
                     </view>
                     <connections>
